@@ -5,26 +5,14 @@ if ARGV.length > 0
   exit(1)
 end
 
-FileUtils.mkdir_p d="./tmp/dummy_source"
-
-Dir.chdir d
-
-File.open "document.rb", "w" do |f|
-  f.puts DATA.read
+unless `mruby -e "puts WebKit::MAJOR_VERSION"`.split("\n").last.to_i == 1
+  puts "ABORT: WebKit version != 1.x"
+  exit(127)
 end
 
-system "mruby document.rb"
-system "yard doc webkit*.rb"
-
-# FileUtils.rm_f "../../doc"
-`rm -rf ../../doc`
-FileUtils.mv "doc", "../../"
-
-Dir.chdir "../../"
-`rm -rf tmp`
-
-__END__
-dg = DocGen.new(WebKit)
-ns = dg.document()
-
-YARDGenerator.generate(ns)
+od = File.expand_path(Dir.getwd)
+`rm -rf doc`
+Dir.chdir("../mruby-girffi-docgen-html/")
+exit(127) unless system "ruby bin/docgen --lib=WebKit"
+`cp -rf ./tmp/doc #{od}/`
+`rm -rf ./tmp`
